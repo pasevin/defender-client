@@ -1,13 +1,14 @@
 {
-  "name": "example-pause-proposal",
+  "name": "example-verify-contract",
   "version": "1.33.0",
+  "description": "",
   "private": true,
   "main": "index.js",
-  "author": "Martín Verzilli <mverzilli@openzeppelin.com>",
-  "license": "MIT",
   "scripts": {
     "start": "node index.js"
   },
+  "author": "Martin Verzilli <mverzilli@openzeppelin.com>",
+  "license": "MIT",
   "dependencies": {
     "defender-admin-client": "1.33.0",
     "dotenv": "^8.2.0"

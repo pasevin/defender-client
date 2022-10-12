@@ -142,16 +142,28 @@ export class SentinelClient extends BaseApiClient {
         conditions: sentinel.fortaConditions,
         autotaskCondition: sentinel.autotaskCondition ? { autotaskId: sentinel.autotaskCondition } : undefined,
       },
+      privateFortaNodeId: sentinel.privateFortaNodeId,
+      network: sentinel.network,
       type: 'FORTA',
     };
+  }
+
+  private normaliseABI(abi: any): string | undefined {
+    return abi ? (typeof abi === 'string' ? abi : JSON.stringify(abi)) : undefined;
   }
 
   private async constructBlockSentinel(
     sentinel: CreateBlockSentinelRequest,
   ): Promise<PartialCreateBlockSubscriberRequest> {
     const blockWatchers = await this.getBlockwatcherIdByNetwork(sentinel.network);
+
     let blockWatcherId =
-      blockWatchers.length > 0 ? _.sortBy(blockWatchers, ['confirmLevel']).reverse()[0].blockWatcherId : undefined;
+      blockWatchers.length > 0
+        ? _.sortBy(
+            blockWatchers.filter(({ confirmLevel }) => _.isNumber(confirmLevel)), // Only consider numberish confirmLevels
+            ['confirmLevel'],
+          ).reverse()[0].blockWatcherId
+        : undefined;
 
     if (sentinel.confirmLevel) {
       blockWatcherId = blockWatchers.find((watcher) => watcher.confirmLevel === sentinel.confirmLevel)?.blockWatcherId;
@@ -167,7 +179,7 @@ export class SentinelClient extends BaseApiClient {
       sentinel.eventConditions.map((condition) => {
         newConditions.push({
           eventConditions: [condition],
-          txConditions: sentinel.txCondition ? [{ status: 'any', expression: sentinel.txCondition }] : [],
+          txConditions: [],
           functionConditions: [],
         });
       });
@@ -177,16 +189,24 @@ export class SentinelClient extends BaseApiClient {
       sentinel.functionConditions.map((condition) => {
         newConditions.push({
           eventConditions: [],
-          txConditions: sentinel.txCondition ? [{ status: 'any', expression: sentinel.txCondition }] : [],
+          txConditions: [],
           functionConditions: [condition],
         });
+      });
+    }
+
+    if (sentinel.txCondition) {
+      newConditions.push({
+        eventConditions: [],
+        txConditions: [{ status: 'any', expression: sentinel.txCondition }],
+        functionConditions: [],
       });
     }
 
     const conditions = getSentinelConditions([
       {
         conditions: newConditions,
-        abi: sentinel.abi,
+        abi: this.normaliseABI(sentinel.abi),
         addresses: sentinel.addresses,
       },
     ]);
@@ -198,7 +218,7 @@ export class SentinelClient extends BaseApiClient {
           conditions: getConditionSets(conditions.txExpression, conditions.events, conditions.functions),
           autotaskCondition: sentinel.autotaskCondition ? { autotaskId: sentinel.autotaskCondition } : undefined,
           addresses: sentinel.addresses,
-          abi: sentinel.abi,
+          abi: this.normaliseABI(sentinel.abi),
         },
       ],
       network: sentinel.network as Network,
@@ -241,6 +261,7 @@ export class SentinelClient extends BaseApiClient {
         messageBody: sentinel.alertMessageBody ? sentinel.alertMessageBody : undefined,
       },
       paused: sentinel.paused ? sentinel.paused : false,
+      stackResourceId: sentinel.stackResourceId,
     };
   }
 
@@ -257,7 +278,7 @@ export class SentinelClient extends BaseApiClient {
     return {
       type: 'BLOCK',
       addresses: rule.addresses, // There's only one addressRules at the moment, may cause problems if we add multiple address rules
-      abi: rule.abi,
+      abi: this.normaliseABI(rule.abi),
       eventConditions: _.flatten(rule.conditions.map((condition) => condition.eventConditions)),
       functionConditions: _.flatten(rule.conditions.map((condition) => condition.functionConditions)),
       txCondition,
@@ -290,6 +311,7 @@ export class SentinelClient extends BaseApiClient {
       addresses: sentinel.fortaRule.addresses,
       agentIDs: sentinel.fortaRule.agentIDs,
       fortaConditions: sentinel.fortaRule.conditions,
+      privateFortaNodeId: sentinel.privateFortaNodeId,
     };
   }
 

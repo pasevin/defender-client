@@ -1,3 +1,5 @@
+export type SentinelConfirmation = number | 'safe' | 'finalized';
+
 /**
  * Event information injected by Defender when invoking an Autotask
  */
@@ -129,7 +131,7 @@ export interface BlockSubscriberSummary {
   name: string;
   network: string;
   addresses: string[];
-  confirmBlocks: number;
+  confirmBlocks: SentinelConfirmation;
   abi: Record<string, unknown> | undefined;
   chainId: number;
 }
@@ -153,6 +155,7 @@ interface SentinelBaseConditionSummary {
 interface SentinelBaseAbiConditionSummary extends SentinelBaseConditionSummary {
   signature: string;
   args: any[];
+  address: string;
   params: { [key: string]: any };
 }
 
@@ -244,6 +247,7 @@ export type BlockAlert = TFortaAlert & {
 
 interface TFortaAlert {
   addresses?: string[];
+  createdAt: string;
   severity: string;
   alertId: string;
   scanNodeCount: number;
