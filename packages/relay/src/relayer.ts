@@ -1,5 +1,6 @@
-import { ApiRelayer } from './api';
 import { Network } from 'defender-base-client';
+import https from 'https';
+import { ApiRelayer } from './api';
 export type Address = string;
 export type BigUInt = string | number;
 export type Hex = string;
@@ -12,6 +13,7 @@ export interface SendBaseTransactionRequest {
   data?: Hex;
   gasLimit: BigUInt;
   validUntil?: string;
+  isPrivate?: boolean;
 }
 
 export interface SendSpeedTransactionRequest extends SendBaseTransactionRequest {
@@ -85,6 +87,7 @@ export interface UpdateRelayerPoliciesRequest {
   gasPriceCap?: BigUInt;
   whitelistReceivers?: Address[];
   EIP1559Pricing?: boolean;
+  privateTransactions?: boolean;
 }
 
 export interface UpdateRelayerRequest {
@@ -114,12 +117,16 @@ interface RelayerTransactionBase {
   from: Address;
   value?: string;
   data?: string;
-  speed: Speed;
+  speed?: Speed;
   gasLimit: number;
   nonce: number;
   status: Status;
   chainId: number;
   validUntil: string;
+  createdAt: string;
+  sentAt?: string;
+  pricedAt?: string;
+  isPrivate?: boolean;
 }
 
 interface RelayerLegacyTransaction extends RelayerTransactionBase {
@@ -134,8 +141,8 @@ interface RelayerEIP1559Transaction extends RelayerTransactionBase {
 export type RelayerTransaction = RelayerLegacyTransaction | RelayerEIP1559Transaction;
 
 export type RelayerParams = ApiRelayerParams | AutotaskRelayerParams;
-export type ApiRelayerParams = { apiKey: string; apiSecret: string };
-export type AutotaskRelayerParams = { credentials: string; relayerARN: string };
+export type ApiRelayerParams = { apiKey: string; apiSecret: string; httpsAgent?: https.Agent };
+export type AutotaskRelayerParams = { credentials: string; relayerARN: string; httpsAgent?: https.Agent };
 
 export type JsonRpcResponse = {
   id: number | null;

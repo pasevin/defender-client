@@ -40,6 +40,45 @@ await client.createProposal({
 });
 ```
 
+You can also optionally set the `simulate` flag as part of the `createProposal` request (as long as this is not a batch proposal) to simulate the proposal within the same request. You can override simulation parameters by setting the `overrideSimulationOpts` property, which is a `SimulationRequest` object.
+
+```js
+const proposalWithSimulation = await client.createProposal({
+  contract: {
+    address: '0xA91382E82fB676d4c935E601305E5253b3829dCD',
+    network: 'mainnet',
+    // provide abi OR overrideSimulationOpts.transactionData.data
+    abi: JSON.stringify(contractABI),
+  },
+  title: 'Flash',
+  description: 'Call the Flash() function',
+  type: 'custom',
+  metadata: {
+    sendTo: '0xA91382E82fB676d4c935E601305E5253b3829dCD',
+    sendValue: '10000000000000000',
+    sendCurrency: {
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+      type: 'native',
+    },
+  },
+  functionInterface: { name: 'flash', inputs: [] },
+  functionInputs: [],
+  via: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+  viaType: 'EOA',
+  // set simulate to true
+  simulate: true,
+  // optional
+  overrideSimulationOpts: {
+    transactionData: {
+      // or instead of ABI, you can provide data
+      data: '0xd336c82d',
+    },
+  },
+});
+```
+
 #### Issuing DELEGATECALLs
 
 When invoking a function via a Gnosis Safe, it's possible to call it via a `DELEGATECALL` instruction instead of a regular call. This has the effect of executing the code in the called contract _in the context of the multisig_, meaning any operations that affect storage will affect the multisig, and any calls to additional contracts will be executed as if the `msg.sender` were the multisig. To do this, add a `metadata` parameter with the value `{ operationType: 'delegateCall' }` to your `createProposal` call:
@@ -105,6 +144,76 @@ await client.proposeUnpause({ via: '0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b',
 
 Note that for `pause` and `unpause` proposals to work, your contract ABI must include corresponding `pause()` and `unpause()` functions.
 
+### Batch proposals
+
+To create a `batch` proposal, you'll need to provide the contracts to use as an array in the `contract` param, and specify a list of `steps` to execute, in which you provide the information of execution for each function you'll call.
+
+```js
+const ERC20Token = '0x24B5C627cF54582F93eDbcF6186989227400Ac75';
+const RolesContract = '0xa50d145697530e8fef3F59a9643c6E9992d0f30D';
+
+const contracts = [
+  {
+    address: ERC20Token,
+    name: 'ERC20 Token',
+    network: 'goerli',
+    abi: '[{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]',
+  },
+  {
+    address: RolesContract,
+    network: 'goerli',
+    name: 'Roles Contract',
+    abi: '[{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"grantRole","outputs":[],"stateMutability":"nonpayable","type":"function"}]',
+  },
+];
+
+const safeAddress = '0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b';
+
+const steps = [
+  {
+    contractId: `goerli-${ERC20Token}`,
+    targetFunction: {
+      name: 'mint',
+      inputs: [{ type: 'uint256', name: 'amount' }],
+    },
+    functionInputs: ['999'],
+    type: 'custom',
+  },
+  {
+    contractId: `goerli-${ERC20Token}`,
+    targetFunction: {
+      name: 'transfer',
+      inputs: [
+        { type: 'address', name: 'to' },
+        { type: 'uint256', name: 'amount' },
+      ],
+    },
+    functionInputs: [safeAddress, '999'],
+    type: 'custom',
+  },
+  {
+    contractId: `goerli-${RolesContract}`,
+    metadata: {
+      action: 'grantRole',
+      role: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      account: safeAddress,
+    },
+    type: 'access-control',
+  },
+];
+
+await client.createProposal({
+  contract: contracts,
+  title: 'Batch test',
+  description: 'Mint, transfer and modify access control',
+  type: 'batch',
+  via: safeAddress,
+  viaType: 'Gnosis Safe',
+  metadata: {}, // Required field but empty
+  steps,
+});
+```
+
 ### List proposals
 
 You can list all proposals:
@@ -130,6 +239,54 @@ You can archive or unarchive a proposal given its contract and proposal ids:
 ```js
 await client.archiveProposal(contractId, proposalId);
 await client.unarchiveProposal(contractId, proposalId);
+```
+
+### Simulate proposals
+
+You can simulate an existing proposal. The results of a simulation (`SimulationResponse`) will be stored and can be retrieved with the getProposalSimulation endpoint:
+
+```js
+const proposal = await client.getProposal(contractId, proposalId);
+
+// import the ABI and create an ethers interface
+const contractInterface = new utils.Interface(contractABI);
+
+// encode function data
+const data = contractInterface.encodeFunctionData(proposal.functionInterface.name, proposal.functionInputs);
+
+const simulation = await client.simulateProposal(
+  proposal.contractId, // contractId
+  proposal.proposalId, // proposalId
+  {
+    transactionData: {
+      // this is the default hardhat address
+      from: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266', // change this to impersonate the `from` address
+      type: 'function-call', // or 'send-funds'
+      data,
+      to: proposal.contract.address,
+      value: proposal.metadata.sendValue,
+    },
+    // default to latest finalized block,
+    // can be up to 100 blocks ahead of current block,
+    // does not support previous blocks
+    blockNumber: undefined,
+  },
+);
+```
+
+> Note that a simulation may fail due to a number of reasons, such as network congestion, unstable providers or hitting a quota limitation. We would advise you to track the response code to assure a successful response was returned. If a transaction was reverted with a reason string, this can be obtained from the response object under `response.meta.returnString`. A transaction revert can be tracked from `response.meta.reverted`.
+
+### Retrieve a proposal simulation
+
+You can also retrieve existing simulations for a proposal:
+
+```js
+const proposal = await client.getProposal(contractId, proposalId);
+
+const simulation = await client.getProposalSimulation(
+  proposal.contractId, // contractId
+  proposal.proposalId, // proposalId
+);
 ```
 
 ## Adding Contracts

@@ -1,15 +1,15 @@
 {
-  "name": "example-create-relayer",
+  "name": "example-batch-proposal",
   "version": "1.38.0-rc.2",
   "private": true,
   "main": "index.js",
-  "author": "Dan McKeon <dan@openzeppelin.com>",
+  "author": "Ernesto García <mverzilli@openzeppelin.com>",
   "license": "MIT",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "defender-relay-client": "1.38.0-rc.2",
+    "defender-admin-client": "1.37.0-rc.2",
     "dotenv": "^8.2.0"
   }
 }
