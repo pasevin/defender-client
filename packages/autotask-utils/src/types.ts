@@ -1,7 +1,7 @@
 export type SentinelConfirmation = number | 'safe' | 'finalized';
 
 export interface PreviousAutotaskRunInfo {
-  trigger: 'schedule' | 'webhook' | 'sentinel' | 'manual' | 'manual-api';
+  trigger: 'schedule' | 'webhook' | 'sentinel' | 'monitor-filter' | 'scenario' | 'manual' | 'manual-api';
   status: 'pending' | 'throttled' | 'error' | 'success';
   createdAt: string;
   autotaskId: string;
@@ -133,6 +133,7 @@ export interface BlockTriggerEvent {
   transaction: EthReceipt;
   matchReasons: SentinelConditionSummary[];
   matchedAddresses: string[];
+  matchedChecksumAddresses: string[];
   sentinel: BlockSubscriberSummary;
   metadata?: { [k: string]: unknown };
 }
@@ -173,30 +174,30 @@ export interface FortaSubscriberSummary {
   chainId?: number;
 }
 
-interface SentinelBaseConditionSummary {
+export interface SentinelBaseConditionSummary {
   condition?: string;
 }
 
-interface SentinelBaseAbiConditionSummary extends SentinelBaseConditionSummary {
+export interface SentinelBaseAbiConditionSummary extends SentinelBaseConditionSummary {
   signature: string;
   args: any[];
   address: string;
   params: { [key: string]: any };
 }
 
-interface EventConditionSummary extends SentinelBaseAbiConditionSummary {
+export interface EventConditionSummary extends SentinelBaseAbiConditionSummary {
   type: 'event';
 }
 
-interface FunctionConditionSummary extends SentinelBaseAbiConditionSummary {
+export interface FunctionConditionSummary extends SentinelBaseAbiConditionSummary {
   type: 'function';
 }
 
-interface InternalFunctionConditionSummary extends SentinelBaseAbiConditionSummary {
+export interface InternalFunctionConditionSummary extends SentinelBaseAbiConditionSummary {
   type: 'internal-function';
 }
 
-interface TransactionConditionSummary extends SentinelBaseConditionSummary {
+export interface TransactionConditionSummary extends SentinelBaseConditionSummary {
   type: 'transaction';
 }
 

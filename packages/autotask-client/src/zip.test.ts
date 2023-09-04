@@ -35,6 +35,7 @@ async function expectZip(zipContent: string) {
   const zip = new JSZip();
   await zip.loadAsync(Buffer.from(zipContent, 'base64'));
   expect(Object.keys(zip.files).sort()).toEqual(['data.json', 'index.js', 'subfolder/', 'subfolder/nested.json']);
+  console.log(await zip.file('index.js')?.async('text'));
   expect(await zip.file('index.js')?.async('text')).toEqual('exports.handler = () => {};');
   expect(await zip.file('data.json')?.async('text')).toEqual('{ "value": 42 }');
   expect(await zip.file('subfolder/nested.json')?.async('text')).toEqual('{ "nested": true }');

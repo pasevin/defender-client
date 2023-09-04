@@ -1,6 +1,6 @@
 {
-  "name": "defender-relay-client",
-  "version": "1.38.0-rc.2",
+  "name": "@openzeppelin/defender-relay-client",
+  "version": "1.49.0-rc.0",
   "description": "",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -27,13 +27,13 @@
     "@ethersproject/providers": "^5.6.8",
     "@ethersproject/transactions": "^5.6.2",
     "jest-mock-extended": "^1.0.15",
-    "web3-core": "^1.7.3",
-    "web3-core-helpers": "^1.7.3"
+    "web3-core": "^1.8.2",
+    "web3-core-helpers": "^1.8.2"
   },
   "dependencies": {
+    "@openzeppelin/defender-base-client": "1.49.0-rc.0",
     "amazon-cognito-identity-js": "^6.0.1",
-    "axios": "^0.21.2",
-    "defender-base-client": "1.38.0-rc.2",
+    "axios": "^1.4.0",
     "lodash": "^4.17.19",
     "node-fetch": "^2.6.0"
   },
@@ -43,8 +43,11 @@
     "@ethersproject/hash": "^5.6.1",
     "@ethersproject/providers": "^5.6.8",
     "@ethersproject/transactions": "^5.6.2",
-    "web3-core": "^1.7.3",
-    "web3-core-helpers": "^1.7.3"
+    "web3-core": "^1.8.2",
+    "web3-core-helpers": "^1.8.2"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "gitHead": "a7c4808dd11e708df42d110de230c264061c72c3"
 }

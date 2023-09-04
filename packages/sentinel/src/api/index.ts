@@ -1,4 +1,4 @@
-import { BaseApiClient, Network } from 'defender-base-client';
+import { BaseApiClient, Network, ApiVersion } from '@openzeppelin/defender-base-client';
 import {
   ConditionSet,
   CreateSubscriberRequest,
@@ -25,10 +25,10 @@ import { BlockWatcher } from '../models/blockwatcher';
 import _ from 'lodash';
 import getConditionSets, { getSentinelConditions } from '../utils';
 import {
-  CreateNotificationCategoryRequest,
   NotificationCategory as NotificationCategoryResponse,
   UpdateNotificationCategoryRequest,
 } from '../models/category';
+import { ListNetworkRequestOptions } from '../models/networks';
 
 export class SentinelClient extends BaseApiClient {
   protected getPoolId(): string {
@@ -39,8 +39,17 @@ export class SentinelClient extends BaseApiClient {
     return process.env.DEFENDER_SENTINEL_POOL_CLIENT_ID || '40e58hbc7pktmnp9i26hh5nsav';
   }
 
-  protected getApiUrl(): string {
+  protected getApiUrl(v: ApiVersion = 'v1'): string {
+    if (v === 'v2') {
+      return process.env.DEFENDER_API_V2_URL || 'https://defender-api.openzeppelin.com/v2/';
+    }
     return process.env.DEFENDER_SENTINEL_API_URL || 'https://defender-api.openzeppelin.com/sentinel/';
+  }
+
+  public async listNetworks(opts?: ListNetworkRequestOptions): Promise<Network[]> {
+    return this.apiCall(async (api) => {
+      return await api.get(opts && opts.networkType ? `/networks?type=${opts.networkType}` : `/networks`);
+    });
   }
 
   public async list(): Promise<ListSentinelResponse> {
@@ -182,13 +191,15 @@ export class SentinelClient extends BaseApiClient {
   ): Promise<PartialCreateBlockSubscriberRequest> {
     const blockWatchers = await this.getBlockwatcherIdByNetwork(sentinel.network);
 
-    let blockWatcherId =
-      blockWatchers.length > 0
-        ? _.sortBy(
-            blockWatchers.filter(({ confirmLevel }) => _.isNumber(confirmLevel)), // Only consider numberish confirmLevels
-            ['confirmLevel'],
-          ).reverse()[0].blockWatcherId
-        : undefined;
+    let blockWatcherId;
+
+    if (blockWatchers?.length > 0) {
+      const blockWatchersSorted = _.sortBy(
+        blockWatchers.filter(({ confirmLevel }) => _.isNumber(confirmLevel)), // Only consider numberish confirmLevels
+        ['confirmLevel'],
+      ).reverse();
+      blockWatcherId = blockWatchersSorted[0]?.blockWatcherId;
+    }
 
     if (sentinel.confirmLevel) {
       blockWatcherId = blockWatchers.find((watcher) => watcher.confirmLevel === sentinel.confirmLevel)?.blockWatcherId;
@@ -287,8 +298,10 @@ export class SentinelClient extends BaseApiClient {
         autotaskId: sentinel.autotaskTrigger ? sentinel.autotaskTrigger : undefined,
         timeoutMs: sentinel.alertTimeoutMs ? sentinel.alertTimeoutMs : 0,
         messageBody: sentinel.alertMessageBody ? sentinel.alertMessageBody : undefined,
+        messageSubject: sentinel.alertMessageSubject ? sentinel.alertMessageSubject : undefined,
       },
       paused: sentinel.paused ? sentinel.paused : false,
+      riskCategory: sentinel.riskCategory,
       stackResourceId: sentinel.stackResourceId,
     };
   }
@@ -296,6 +309,8 @@ export class SentinelClient extends BaseApiClient {
   private toCreateBlockSentinelRequest(sentinel: CreateBlockSubscriberResponse): CreateBlockSentinelRequest {
     const rule = sentinel.addressRules[0];
     let txCondition;
+
+    if (!rule) throw new Error(`No rule found for monitor ${sentinel.name}`);
 
     for (const condition of rule.conditions) {
       for (const cond of condition.txConditions) {
@@ -316,6 +331,7 @@ export class SentinelClient extends BaseApiClient {
       autotaskCondition: rule.autotaskCondition?.autotaskId,
       autotaskTrigger: sentinel.notifyConfig?.autotaskId,
       alertTimeoutMs: sentinel.notifyConfig?.timeoutMs,
+      alertMessageSubject: sentinel.notifyConfig?.messageSubject,
       alertMessageBody: sentinel.notifyConfig?.messageBody,
       notificationChannels: sentinel.notifyConfig?.notifications?.map(({ notificationId }) => notificationId) ?? [],
       notificationCategoryId: sentinel.notifyConfig?.notificationCategoryId,
@@ -333,6 +349,7 @@ export class SentinelClient extends BaseApiClient {
       autotaskCondition: sentinel.fortaRule.autotaskCondition?.autotaskId,
       autotaskTrigger: sentinel.notifyConfig?.autotaskId,
       alertTimeoutMs: sentinel.notifyConfig?.timeoutMs,
+      alertMessageSubject: sentinel.notifyConfig?.messageSubject,
       alertMessageBody: sentinel.notifyConfig?.messageBody,
       notificationChannels: sentinel.notifyConfig?.notifications?.map(({ notificationId }) => notificationId) ?? [],
       notificationCategoryId: sentinel.notifyConfig?.notificationCategoryId,

@@ -1,4 +1,4 @@
-import JSZip, { folder } from 'jszip';
+import JSZip from 'jszip';
 import glob from 'glob';
 import { promisify } from 'util';
 import { readFile } from 'fs';
@@ -9,7 +9,7 @@ export async function zipSources(sources: { [name: string]: string }): Promise<s
   if (!sources['index.js']) throw new Error(`Expected index.js entrypoint in sources`);
   const zip = new JSZip();
   for (const source in sources) {
-    zip.file(source, sources[source], { binary: false });
+    zip.file(source, sources[source]!, { binary: false });
   }
 
   const zippedCode = await zip.generateAsync({ type: 'nodebuffer' });

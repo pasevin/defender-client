@@ -7,11 +7,11 @@ Further information can be found on the OpenZeppelin documentation page: https:/
 ## Install
 
 ```bash
-npm install defender-sentinel-client
+npm install @openzeppelin/defender-sentinel-client
 ```
 
 ```bash
-yarn add defender-sentinel-client
+yarn add @openzeppelin/defender-sentinel-client
 ```
 
 ## Usage
@@ -19,7 +19,7 @@ yarn add defender-sentinel-client
 Start by creating a new _Team API Key_ in Defender, and granting it the capability to manage sentinels. Use the newly created API key to initialize an instance of the Sentinel client.
 
 ```js
-const { SentinelClient } = require('defender-sentinel-client');
+const { SentinelClient } = require('@openzeppelin/defender-sentinel-client');
 const client = new SentinelClient({ apiKey: API_KEY, apiSecret: API_SECRET });
 ```
 
@@ -225,8 +225,11 @@ There are two types of sentinels, `BLOCK` and `FORTA`. For more information on w
 
 To create a new sentinel, you need to provide the type, network, name, pause-state, conditions, alert threshold and notification configuration. This request is exported as type `CreateSentinelRequest`.
 
-An example for a `BLOCK` sentinel is provided below. This sentinel will be named `MyNewSentinel` and will be monitoring the `renounceOwnership` function on the `0x0f06aB75c7DD497981b75CD82F6566e3a5CAd8f2` contract on the Rinkeby network.
+An example for a `BLOCK` sentinel is provided below. This sentinel will be named `MyNewSentinel` and will be monitoring the `renounceOwnership` function on the `0x0f06aB75c7DD497981b75CD82F6566e3a5CAd8f2` contract on the Goerli network.
 The alert threshold is set to 2 times within 1 hour, and the user will be notified via email.
+
+Furthermore, you may optionally set the `riskCategory` property of your sentinel, which labels your sentinel under a certain category:
+`type SubscriberRiskCategory = 'NONE' | 'GOVERNANCE' | 'ACCESS-CONTROL' | 'SUSPICIOUS' | 'FINANCIAL' | 'TECHNICAL';`.
 
 ```js
 const requestParameters = {
@@ -261,6 +264,8 @@ const requestParameters = {
   // notificationChannels take priority over notification categories
   // in this instance, notificationCategoryId will be ignored, unless notificationChannels is empty
   notificationCategoryId: '66a753ae-90ed-4373-a360-1c3f79610d15',
+  // optional
+  riskCategory: 'TECHNICAL',
 };
 ```
 
@@ -366,6 +371,16 @@ You can pause and unpause a sentinel by ID. This will return a `CreateSentinelRe
 ```js
 await client.pause('8181d9e0-88ce-4db0-802a-2b56e2e6a7b1');
 await client.unpause('8181d9e0-88ce-4db0-802a-2b56e2e6a7b1');
+```
+
+### List Networks
+
+To list tenant enabled networks, you can call the `listNetworks` function on the client, which returns a `Network[]` object:
+
+```js
+await client.listNetworks(); // lists all networks
+await client.listNetworks({ networkType: 'production' }); // lists only production networks
+await client.listNetworks({ networkType: 'test' }); // lists only test networks
 ```
 
 ### Failed Requests

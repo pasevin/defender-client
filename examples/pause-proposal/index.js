@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const { AdminClient } = require('defender-admin-client');
+const { AdminClient } = require('@openzeppelin/defender-admin-client');
 
 const address = '0xB07b1C80371915dEFd254d1C57BeF2bDe6D3b610';
 const network = 'goerli';
@@ -15,7 +15,7 @@ async function main() {
       via: '0xF608FA64c4fF8aDdbEd106E69f3459effb4bC3D1',
       viaType: 'Gnosis Safe',
     },
-    { network, address }
+    { network, address },
   );
 
   const siteUrl = process.env.SITE_URL || 'https://defender.openzeppelin.com';

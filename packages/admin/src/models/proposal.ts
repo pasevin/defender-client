@@ -1,4 +1,4 @@
-import { Network } from 'defender-base-client';
+import { Network } from '@openzeppelin/defender-base-client';
 
 // Copied from openzeppelin/defender/models/src/types/proposal-api.req.d.ts
 export type Hex = string;
@@ -16,10 +16,11 @@ export interface ExternalApiCreateProposalRequest {
   type: ProposalType;
   metadata?: ProposalMetadata;
   via?: Address;
-  viaType?: 'EOA' | 'Gnosis Safe' | 'Gnosis Multisig';
+  viaType?: 'EOA' | 'Gnosis Safe' | 'Gnosis Multisig' | 'Relayer';
   functionInterface?: ProposalTargetFunction;
   functionInputs?: ProposalFunctionInputs;
   steps?: ProposalStep[];
+  relayerId?: string;
 }
 
 export interface PartialContract {

@@ -1,17 +1,17 @@
 require('dotenv').config();
 
-const { DefenderRelayProvider, DefenderRelaySenderProvider } = require('defender-relay-client/lib/web3');
+const { DefenderRelayProvider } = require('@openzeppelin/defender-relay-client/lib/web3');
 const Web3 = require('web3');
 const ERC20Abi = require('./erc20.json');
 const ERC20Bytecode = require('./bytecode.json')[0].data.bytecode.object;
 const Beneficiary = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1';
 
 async function main(provider) {
-  const web3 = new Web3(provider)  
+  const web3 = new Web3(provider);
   const [from] = await web3.eth.getAccounts();
   const balance = await web3.eth.getBalance(from);
   console.log(`Relayer address is ${from} with balance ${balance}`);
-  
+
   console.log(`Deploying ERC20 contract`);
   const factory = new web3.eth.Contract(ERC20Abi, null, { data: ERC20Bytecode, from });
   const erc20 = await factory.deploy({ arguments: [100] }).send();

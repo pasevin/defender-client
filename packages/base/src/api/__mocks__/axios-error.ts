@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import { AxiosError, AxiosRequestHeaders } from 'axios';
 
 export const mockAxiosError: AxiosError = {
   name: 'Error',
@@ -7,12 +7,12 @@ export const mockAxiosError: AxiosError = {
     url: '/relayer',
     method: 'get',
     headers: {
-      Accept: 'application/json, text/plain, */*',
+      'Accept': 'application/json, text/plain, */*',
       'X-Api-Key': '4Rfp2GEHDjgesA6MdseUM1n8B8kT9hgs',
-      Authorization: 'Bearer WRONG',
+      'Authorization': 'Bearer WRONG',
       'Content-Type': 'application/json',
       'User-Agent': 'axios/0.21.4',
-    },
+    } as unknown as AxiosRequestHeaders,
     baseURL: 'https://api.defender.openzeppelin.com/',
     timeout: 0,
     xsrfCookieName: 'XSRF-TOKEN',
@@ -113,21 +113,21 @@ export const mockAxiosError: AxiosError = {
     status: 401,
     statusText: 'Unauthorized',
     headers: {
-      date: 'Thu, 21 Jul 2022 14:54:13 GMT',
+      'date': 'Thu, 21 Jul 2022 14:54:13 GMT',
       'content-type': 'application/json',
       'content-length': '26',
-      connection: 'close',
+      'connection': 'close',
       'x-amzn-requestid': 'f18f6866-a9e7-4470-92b4-7c50d62330a4',
       'x-amzn-errortype': 'UnauthorizedException',
       'x-amz-apigw-id': 'Vn1HTHt3PHcF_2w=',
       'x-amzn-trace-id': 'Root=1-62d96894-1766d59626818111787bf38a',
       'x-cache': 'Error from cloudfront',
-      via: '1.1 fcad480c2a8351d8cd68e3adc43dff3e.cloudfront.net (CloudFront)',
+      'via': '1.1 fcad480c2a8351d8cd68e3adc43dff3e.cloudfront.net (CloudFront)',
       'x-amz-cf-pop': 'CDG50-C2',
       'x-amz-cf-id': 'MCT4JHArIztgReF1WvWDoee_m96JGjWcVZpeb3AU7NHwYrVA6sGqgQ==',
       'cf-cache-status': 'DYNAMIC',
       'expect-ct': 'max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"',
-      server: 'cloudflare',
+      'server': 'cloudflare',
       'cf-ray': '72e4c540dfa999a5-CDG',
     },
     config: {
@@ -142,6 +142,13 @@ export const mockAxiosError: AxiosError = {
       maxContentLength: -1,
       maxBodyLength: -1,
       data: undefined,
+      headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'X-Api-Key': '4Rfp2GEHDjgesA6MdseUM1n8B8kT9hgs',
+        'Authorization': 'Bearer WRONG',
+        'Content-Type': 'application/json',
+        'User-Agent': 'axios/0.21.4',
+      } as unknown as AxiosRequestHeaders,
     },
     request: {
       _eventsCount: 7,

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { toUtf8Bytes } from '@ethersproject/strings';
 import { Provider, TransactionRequest, TransactionResponse } from '@ethersproject/abstract-provider';
 import { Signer, TypedDataDomain, TypedDataField, TypedDataSigner } from '@ethersproject/abstract-signer';
@@ -10,7 +12,7 @@ import { Relayer, Speed, RelayerParams, isRelayer, isEIP1559Tx, isLegacyTx } fro
 import { Transaction } from '@ethersproject/transactions';
 import { omit } from 'lodash';
 
-const logger = new Logger(`defender-relay-client`);
+const logger = new Logger(`@openzeppelin/defender-relay-client`);
 
 const allowedTransactionKeys: Array<string> = [
   'chainId',
@@ -38,7 +40,9 @@ export type DefenderRelaySignerOptions = Partial<
   }
 >;
 
-type ProviderWithWrapTransaction = Provider & { _wrapTransaction(tx: Transaction, hash?: string): TransactionResponse };
+type ProviderWithWrapTransaction = Provider & {
+  _wrapTransaction(tx: Transaction, hash?: string): TransactionResponse;
+};
 
 export class DefenderRelaySigner extends Signer implements TypedDataSigner {
   private readonly relayer: Relayer;

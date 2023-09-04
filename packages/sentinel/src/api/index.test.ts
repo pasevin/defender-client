@@ -11,12 +11,12 @@ import {
 import { CreateSentinelResponse } from '../models/response';
 import { ExternalCreateBlockSubscriberRequest, ExternalCreateFortaSubscriberRequest } from '../models/subscriber';
 
-jest.mock('defender-base-client');
+jest.mock('@openzeppelin/defender-base-client');
 jest.mock('aws-sdk');
 jest.mock('axios');
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { createAuthenticatedApi } = require('defender-base-client');
+const { createAuthenticatedApi } = require('@openzeppelin/defender-base-client');
 
 type TestSentinelClient = Omit<SentinelClient, 'api'> & {
   api: AxiosInstance;
@@ -207,7 +207,11 @@ describe('SentinelClient', () => {
                 txConditions: [{ expression: txCondition, status: 'any' }],
                 functionConditions: [],
               },
-              { eventConditions: [], txConditions: [{ expression: txCondition, status: 'any' }], functionConditions },
+              {
+                eventConditions: [],
+                txConditions: [{ expression: txCondition, status: 'any' }],
+                functionConditions,
+              },
             ],
           },
         ],
@@ -311,7 +315,11 @@ describe('SentinelClient', () => {
                 txConditions: [{ expression: txCondition, status: 'any' }],
                 functionConditions: [],
               },
-              { eventConditions: [], txConditions: [{ expression: txCondition, status: 'any' }], functionConditions },
+              {
+                eventConditions: [],
+                txConditions: [{ expression: txCondition, status: 'any' }],
+                functionConditions,
+              },
             ],
           },
         ],
@@ -383,8 +391,8 @@ describe('SentinelClient', () => {
         name,
         addressRules: [
           {
-            abi: oldBlockSentinel.addressRules[0].abi,
-            addresses: oldBlockSentinel.addressRules[0].addresses,
+            abi: oldBlockSentinel.addressRules[0]!.abi,
+            addresses: oldBlockSentinel.addressRules[0]!.addresses,
             autotaskCondition: undefined,
             conditions: [],
           },
@@ -537,7 +545,7 @@ describe('SentinelClient', () => {
     it('finds blockwatchers for network when there are available', async () => {
       // Make sure the network provided is the network mocked above
       const results = await sentinel.getBlockwatcherIdByNetwork('goerli');
-      expect(results[0].blockWatcherId).toEqual('i-am-the-watcher');
+      expect(results[0]?.blockWatcherId).toEqual('i-am-the-watcher');
     });
 
     it('does not find blockwatchers for network when there are none', async () => {

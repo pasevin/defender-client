@@ -16,9 +16,11 @@ export interface ExternalBaseCreateSubscriberRequest {
   autotaskTrigger?: string;
   alertTimeoutMs?: number;
   alertMessageBody?: string;
+  alertMessageSubject?: string;
   notificationChannels: string[];
   notificationCategoryId?: string;
   type: 'FORTA' | 'BLOCK';
+  riskCategory?: SubscriberRiskCategory;
   stackResourceId?: string;
 }
 export interface ExternalCreateBlockSubscriberRequest extends ExternalBaseCreateSubscriberRequest {
@@ -63,7 +65,7 @@ export type CreateSubscriberRequest = CreateBlockSubscriberRequest | CreateForta
 
 // Copied from openzeppelin/defender/models/src/types/subscribers.req.d.ts
 
-import { Network } from 'defender-base-client';
+import { Network } from '@openzeppelin/defender-base-client';
 import { NotificationType } from './notification';
 
 export interface BaseCreateSubscriberRequest {
@@ -71,6 +73,7 @@ export interface BaseCreateSubscriberRequest {
   paused: boolean;
   alertThreshold?: Threshold;
   notifyConfig?: Notifications;
+  riskCategory?: SubscriberRiskCategory;
   stackResourceId?: string;
 }
 
@@ -127,6 +130,14 @@ export enum SubscriberType {
   FORTA = 'FORTA',
 }
 
+export type SubscriberRiskCategory =
+  | 'NONE'
+  | 'GOVERNANCE'
+  | 'ACCESS-CONTROL'
+  | 'SUSPICIOUS'
+  | 'FINANCIAL'
+  | 'TECHNICAL';
+
 export type Address = string;
 export interface AddressRule {
   conditions: ConditionSet[];
@@ -163,6 +174,7 @@ export interface Notifications {
   notificationCategoryId?: string;
   autotaskId?: string;
   messageBody?: string;
+  messageSubject?: string;
   timeoutMs: number;
 }
 export interface NotificationReference {

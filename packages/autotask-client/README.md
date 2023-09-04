@@ -7,17 +7,17 @@ This client allows you to update the code of your Autotasks programmatically, so
 Example usage:
 
 ```bash
-$ defender-autotask update-code 19ef0257-bba4-4723-a18f-67d96726213e ./lib/my-autotask
+defender-autotask update-code 19ef0257-bba4-4723-a18f-67d96726213e ./lib/my-autotask
 ```
 
 ## Install
 
 ```bash
-npm install defender-autotask-client
+npm install @openzeppelin/defender-autotask-client
 ```
 
 ```bash
-yarn add defender-autotask-client
+yarn add @openzeppelin/defender-autotask-client
 ```
 
 ## Usage
@@ -39,9 +39,9 @@ Note that you can only use the client to update the code of an existing Autotask
 Set the environment variables `API_KEY` and `API_SECRET` to the Team API key/secret you created on Defender, and invoke the `defender-autotask` bin:
 
 ```bash
-$ defender-autotask update-code $AUTOTASK_ID $PATH_TO_CODE
-$ defender-autotask execute-run $AUTOTASK_ID
-$ defender-autotask tail-runs $AUTOTASK_ID
+defender-autotask update-code $AUTOTASK_ID $PATH_TO_CODE
+defender-autotask execute-run $AUTOTASK_ID
+defender-autotask tail-runs $AUTOTASK_ID
 ```
 
 Beware that the `defender-autotask` CLI will automatically load environment variables from a local `.env` file if found.
@@ -53,7 +53,7 @@ Beware that the `defender-autotask` CLI will automatically load environment vari
 Use the Team API key to initialize an instance of the Defender Autotask client:
 
 ```js
-const { AutotaskClient } = require('defender-autotask-client');
+const { AutotaskClient } = require('@openzeppelin/defender-autotask-client');
 const client = new AutotaskClient({ apiKey: API_KEY, apiSecret: API_SECRET });
 ```
 
@@ -75,7 +75,7 @@ interface CreateAutotaskRequest {
   encodedZippedCode: string;
   relayerId?: string;
   trigger: {
-    type: 'schedule' | 'webhook' | 'sentinel',
+    type: 'schedule' | 'webhook' | 'sentinel' | 'monitor-filter' | 'scenario',
     frequencyMinutes?: number,
     cron?: string,
   };
@@ -109,7 +109,7 @@ interface UpdateAutotaskRequest {
   encodedZippedCode?: string;
   relayerId?: string;
   trigger: {
-    type: 'schedule' | 'webhook' | 'sentinel',
+    type: 'schedule' | 'webhook' | 'sentinel' | 'monitor-filter' | 'scenario',
     frequencyMinutes?: number,
     cron?: string,
   };
@@ -185,11 +185,7 @@ await client.getAutotaskRun(autotaskRunId);
 
 **How do I find the ID of my Autotask?**
 
-You can retrieve it from the _Edit Code_ page of your Autotask, or directly from the URL. For instance, in the following URL, the ID is `19ef0257-bba4-4723-a18f-67d96726213e`.
-
-```
-https://defender.openzeppelin.com/#/autotask/19ef0257-bba4-4723-a18f-67d96726213e
-```
+You can retrieve it from the _Edit Code_ page of your Autotask, or directly from the [URL](https://defender.openzeppelin.com/#/autotask/19ef0257-bba4-4723-a18f-67d96726213e). For instance, in the following URL, the ID is `19ef0257-bba4-4723-a18f-67d96726213e`.
 
 **Can I use this package in a browser?**
 

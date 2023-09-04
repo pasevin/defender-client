@@ -1,4 +1,4 @@
-import { BaseApiClient, Network } from 'defender-base-client';
+import { BaseApiClient, ApiVersion } from '@openzeppelin/defender-base-client';
 import { capitalize, isArray, isEmpty } from 'lodash';
 import { Interface } from 'ethers/lib/utils';
 
@@ -22,6 +22,7 @@ type UpgradeParams = {
   viaType?: CreateProposalRequest['viaType'];
   newImplementation: string;
   newImplementationAbi?: string;
+  relayerId?: string;
 };
 
 type PauseParams = {
@@ -29,6 +30,7 @@ type PauseParams = {
   description?: string;
   via: Address;
   viaType: CreateProposalRequest['viaType'];
+  relayerId?: string;
 };
 
 type AccessControlParams = {
@@ -36,6 +38,7 @@ type AccessControlParams = {
   description?: string;
   via: Address;
   viaType: CreateProposalRequest['viaType'];
+  relayerId?: string;
 };
 export interface ProposalResponseWithUrl extends ProposalResponse {
   url: string;
@@ -51,7 +54,10 @@ export class AdminClient extends BaseApiClient {
     return process.env.DEFENDER_ADMIN_POOL_CLIENT_ID || '40e58hbc7pktmnp9i26hh5nsav';
   }
 
-  protected getApiUrl(): string {
+  protected getApiUrl(v: ApiVersion = 'v1'): string {
+    if (v === 'v2') {
+      return process.env.DEFENDER_API_V2_URL || 'https://defender-api.openzeppelin.com/v2/';
+    }
     return process.env.DEFENDER_ADMIN_API_URL || 'https://defender-api.openzeppelin.com/admin/';
   }
 
@@ -157,22 +163,18 @@ export class AdminClient extends BaseApiClient {
     });
   }
 
-  public async archiveProposal(contractId: string, proposalId: string): Promise<ProposalResponseWithUrl> {
+  public async archiveProposal(_: string, proposalId: string): Promise<ProposalResponseWithUrl> {
     return this.apiCall(async (api) => {
-      const response = (await api.put(`/contracts/${contractId}/proposals/${proposalId}/archived`, {
-        archived: true,
-      })) as ProposalResponse;
+      const response = (await api.put(`proposals/archive/${proposalId}`)) as ProposalResponse;
       return { ...response, url: getProposalUrl(response) };
-    });
+    }, 'v2');
   }
 
-  public async unarchiveProposal(contractId: string, proposalId: string): Promise<ProposalResponseWithUrl> {
+  public async unarchiveProposal(_: string, proposalId: string): Promise<ProposalResponseWithUrl> {
     return this.apiCall(async (api) => {
-      const response = (await api.put(`/contracts/${contractId}/proposals/${proposalId}/archived`, {
-        archived: false,
-      })) as ProposalResponse;
+      const response = (await api.put(`proposals/unarchive/${proposalId}`)) as ProposalResponse;
       return { ...response, url: getProposalUrl(response) };
-    });
+    }, 'v2');
   }
 
   public async getProposalSimulation(contractId: string, proposalId: string): Promise<SimulationResponse> {
@@ -214,6 +216,7 @@ export class AdminClient extends BaseApiClient {
       description: params.description ?? `Upgrade contract implementation to ${params.newImplementation}`,
       via: params.via,
       viaType: params.viaType,
+      relayerId: params.relayerId,
     };
     return this.createProposal(request);
   }
@@ -283,6 +286,7 @@ export class AdminClient extends BaseApiClient {
       type: 'pause',
       via: params.via,
       viaType: params.viaType,
+      relayerId: params.relayerId,
       functionInputs: [],
       functionInterface: { name: action, inputs: [] },
       metadata: {
@@ -306,6 +310,7 @@ export class AdminClient extends BaseApiClient {
       type: 'access-control',
       via: params.via,
       viaType: params.viaType,
+      relayerId: params.relayerId,
       functionInputs: [role, account],
       functionInterface: {
         name: action,
